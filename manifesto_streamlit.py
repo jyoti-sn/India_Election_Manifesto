@@ -5,8 +5,11 @@ from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 
 # Load the dataframes
-bjp_df = pd.read_csv('bjp_df.csv')
-inc_df = pd.read_csv('inc_df.csv')
+url_bjp = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_BJP.csv'
+url_inc = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_INC.csv'
+
+bjp_df = pd.read_csv(url_bjp)
+inc_df = pd.read_csv(url_inc)
 
 # Create the Streamlit app
 st.title("Election Manifesto Dashboard")
