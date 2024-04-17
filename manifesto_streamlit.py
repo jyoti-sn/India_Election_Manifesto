@@ -66,17 +66,19 @@ def create_radar_chart(data):
         domains = data['Domains'].unique()
         fig = go.Figure()
         for domain in domains:
-            fig.add_trace(go.Scatterpolar(
-                r=data[data['Domains'] == domain][subcategory_columns].values[0],
-                theta=subcategory_columns,
-                fill='toself',
-                name=domain
-            ))
+            domain_data = data[data['Domains'] == domain][subcategory_columns].fillna(0).values.tolist()
+            if sum(domain_data) > 0:  # Add this check to skip domains with all zeros
+                fig.add_trace(go.Scatterpolar(
+                    r=domain_data,
+                    theta=subcategory_columns,
+                    fill='toself',
+                    name=domain
+                ))
         fig.update_layout(
             polar=dict(
                 radialaxis=dict(
                     visible=True,
-                    range=[0, max(data[subcategory_columns].values.max()) + 10]
+                    range=[0, max(data[subcategory_columns].max()) + 10]
                 )
             ),
             showlegend=True
