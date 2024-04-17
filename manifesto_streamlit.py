@@ -1,17 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from PIL import Image
-import requests
-from io import BytesIO
-
-def get_image_from_url(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        return Image.open(BytesIO(response.content))
-    else:
-        st.error(f"Error fetching image from URL: {url}")
-        return None  # Return None if there's an error
 
 # Load dataframes (assuming URLs are still valid)
 url_bjp = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_BJP.csv'
@@ -20,17 +9,9 @@ url_inc = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/m
 bjp_df = pd.read_csv(url_bjp)
 inc_df = pd.read_csv(url_inc)
 
-# Fetch party logos from Wikipedia URLs
-bjp_logo_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bjp.png/600px-Bjp.png"  # Updated URL for BJP logo
-inc_logo_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Indian_National_Congress_hand_logo.png/600px-Indian_National_Congress_hand_logo.png"  # Updated URL for INC logo
-
-bjp_logo = get_image_from_url(bjp_logo_url)
-inc_logo = get_image_from_url(inc_logo_url)
-
-
 # App title and description
 st.title("Election Manifesto Dashboard")
-st.subheader("Exploring the Evolution of Key Issues in Indian Election Manifestos: 2004-2024")
+st.subheader("Exploring the Evolution of Key Issues in Indian Election Manifestos")
 
 # Sidebar for year and party selection
 years = st.sidebar.slider(
@@ -82,11 +63,9 @@ if compare_parties:
     col1, col2 = st.columns(2)
     with col1:
         bjp_filtered = bjp_df[bjp_df['Year'].between(years[0], years[1])]
-        st.image(bjp_logo, width=100)  # Display BJP logo
         st.plotly_chart(generate_radar_chart("BJP", bjp_filtered), use_container_width=True)
     with col2:
         inc_filtered = inc_df[inc_df['Year'].between(years[0], years[1])]
-        st.image(inc_logo, width=100)  # Display INC logo
         st.plotly_chart(generate_radar_chart("INC", inc_filtered), use_container_width=True)
 
     st.subheader("Most Common Issues")
@@ -100,11 +79,6 @@ if compare_parties:
 else:
     df = bjp_df if party == "BJP" else inc_df
     filtered_df = df[df['Year'].between(years[0], years[1])]
-    
-    if party == "BJP": 
-        st.image(bjp_logo, width=100) 
-    else:
-        st.image(inc_logo, width=100) 
     
     st.subheader("Most Common Domains")
     st.plotly_chart(generate_radar_chart(party, filtered_df), use_container_width=True)
