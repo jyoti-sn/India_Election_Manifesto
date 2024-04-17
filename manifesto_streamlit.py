@@ -88,11 +88,6 @@ else:
     domain_counts = domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
     st.plotly_chart(create_radar_chart(domain_counts))
 
-st.write("BJP:")
-st.plotly_chart(create_radar_chart(bjp_domain_counts))
-st.write("INC:")
-st.plotly_chart(create_radar_chart(inc_domain_counts))
-
 # Subcategories for selected domain
 st.header("Subcategories for Selected Domain")
 selected_domain = st.selectbox("Select Domain", mapping_df['Domains'].unique())
