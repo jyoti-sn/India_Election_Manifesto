@@ -9,132 +9,131 @@ url_domain_mapping = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_
 
 bjp_df = pd.read_csv(url_bjp)
 inc_df = pd.read_csv(url_inc)
-mapping_df = pd.read_csv(url_domain_mapping)
+domain_mapping = pd.read_csv(url_domain_mapping)
 
-# List of subcategory columns
-subcategory_columns = ['Agriculture', 'Caste', 'Culture and Morality', 'Democracy', 'Economic Planning and Goals', 'Employment',
-                 'Environment and Sustainability', 'Federalism', 'Food and Public Distribution System', 'Freedom and Human Rights',
-                 'Freemarket economy', 'Governmental and Administrative Efficiency', 'Health and Education', 'Inequality', 'Inflation',
-                 'Internal Security', 'Jammu and Kashmir', 'Judiciary', 'Labour Rights', 'Law and Order',
-                 'Leader\'s superior competence', 'National security goals', 'Nationalism and Patriotism', 'Party\'s superior competence',
-                 'Physical Infrastructure and Transportation', 'Political Corruption', 'Pro-state intervention', 'Religion', 'Rural Development',
-                 'Science and Technology', 'Terrorism', 'Underprivileged Minorities', 'Urban Development', 'Welfare State Expansion', 'Women',
-                 'World Peace and Internationalism']
+# Create the Streamlit app
+st.title("India Election Manifesto Dashboard")
 
-# Sidebar filters
-# Sidebar filters
-st.sidebar.title("Filters")
-
-# Year filter
-year_options = list(range(2004, 2025, 5))
-selected_years = st.sidebar.select_slider("Select years", options=year_options, value=(2004, 2024))
+# Sidebar for selecting the years and compare option
+years = st.sidebar.slider("Select years", 2004, 2024, (2004, 2024), 5)
 all_years = st.sidebar.checkbox("Show data for all years")
 if all_years:
-    selected_years = (2004, 2024)
+    years = (2004, 2024)
 
-# Apply year filter
-filtered_bjp_df = bjp_df[bjp_df['Year'].isin(range(selected_years[0], selected_years[1] + 1))]
-filtered_inc_df = inc_df[inc_df['Year'].isin(range(selected_years[0], selected_years[1] + 1))]
-
-# Party selection
-party_selection = st.sidebar.radio("Select Party", ["Compare BJP and INC", "BJP", "INC"])
-
-# Apply filters
-if party_selection == "Compare BJP and INC":
-    filtered_bjp_df = filtered_bjp_df
-    filtered_inc_df = filtered_inc_df
+compare_parties = st.sidebar.checkbox("Compare Political Parties")
+if compare_parties:
+    parties = st.sidebar.multiselect("Select parties to compare", ["BJP", "INC"], default=["BJP", "INC"])
 else:
-    if party_selection == "BJP":
-        filtered_df = filtered_bjp_df
-    else:
-        filtered_df = filtered_inc_df
+    party = st.sidebar.selectbox("Select a party", ["BJP", "INC"])
 
-# Top 10 subcategories
-st.header("Top 10 Subcategories")
-if party_selection == "Compare BJP and INC":
-    top_bjp_subcategories = filtered_bjp_df[subcategory_columns].sum().sort_values(ascending=False)[:10]
-    top_inc_subcategories = filtered_inc_df[subcategory_columns].sum().sort_values(ascending=False)[:10]
-    st.write("BJP:")
-    st.bar_chart(top_bjp_subcategories)
-    st.write("INC:")
-    st.bar_chart(top_inc_subcategories)
+
+if compare_parties:
+    # Display the most common domains as radar charts
+    st.subheader("Most Common Domains for {} and {} from [{}] to [{}]".format(parties[0], parties[1], years[0], years[1]))
+    
+    if "BJP" in parties:
+        bjp_topics = [x.strip() for topic in bjp_df[bjp_df['Year'].between(years[0], years[1])]['Domains'].tolist() for x in topic.split(',')]
+        bjp_topic_counts = pd.Series(bjp_topics).value_counts()
+        bjp_topic_counts = bjp_topic_counts.reindex(bjp_topic_counts.nlargest(10).index)
+
+    if "INC" in parties:
+        inc_topics = [x.strip() for topic in inc_df[inc_df['Year'].between(years[0], years[1])]['Domains'].tolist() for x in topic.split(',')]
+        inc_topic_counts = pd.Series(inc_topics).value_counts()
+        inc_topic_counts = inc_topic_counts.reindex(inc_topic_counts.nlargest(10).index)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        fig = go.Figure(go.Scatterpolar(
+            r=bjp_topic_counts,
+            theta=bjp_topic_counts.index,
+            fill='toself',
+            name='BJP'
+        ))
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, max(bjp_topic_counts)],
+                    tickfont=dict(size=10)
+                )),
+            showlegend=True,
+            margin=dict(t=20, b=20, l=20, r=20),
+            height=500
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
+        fig = go.Figure(go.Scatterpolar(
+            r=inc_topic_counts,
+            theta=inc_topic_counts.index,
+            fill='toself',
+            name='INC'
+        ))
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, max(inc_topic_counts)],
+                    tickfont=dict(size=10)
+                )),
+            showlegend=True,
+            margin=dict(t=20, b=20, l=20, r=20),
+            height=500
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Display the most common issues
+    st.subheader("Most Common Issues for {} and {} from [{}] to [{}]".format(parties[0], parties[1], years[0], years[1]))
+    
+    if "BJP" in parties:
+        bjp_subcategories = [x.strip() for subcategory in bjp_df[bjp_df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
+        bjp_subcategory_counts = pd.Series(bjp_subcategories).value_counts()
+        bjp_subcategory_counts = bjp_subcategory_counts.reindex(bjp_subcategory_counts.nlargest(10).index)
+
+    if "INC" in parties:
+        inc_subcategories = [x.strip() for subcategory in inc_df[inc_df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
+        inc_subcategory_counts = pd.Series(inc_subcategories).value_counts()
+        inc_subcategory_counts = inc_subcategory_counts.reindex(inc_subcategory_counts.nlargest(10).index)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("{} Most Common Issues".format(parties[0]))
+        st.bar_chart(bjp_subcategory_counts)
+    with col2:
+        st.subheader("{} Most Common Issues".format(parties[1]))
+        st.bar_chart(inc_subcategory_counts)
 else:
-    top_subcategories = filtered_df[subcategory_columns].sum().sort_values(ascending=False)[:10]
-    st.bar_chart(top_subcategories)
+    df = bjp_df if party == "BJP" else inc_df
 
+    # Display the most common domains as a radar chart
+    st.subheader("Most Common Domains for {} from [{}] to [{}]".format(party, years[0], years[1]))
+    topics = [x.strip() for topic in df[df['Year'].between(years[0], years[1])]['Domains'].tolist() for x in topic.split(',')]
+    topic_counts = pd.Series(topics).value_counts()
+    topic_counts = topic_counts.reindex(topic_counts.nlargest(10).index)
 
-# Function to create pie chart
-def create_pie_chart(data):
-    domain_totals = data[subcategory_columns].sum().sum()
-    domain_values = data.groupby('Domains')[subcategory_columns].sum().sum().reset_index()
-    domain_values['percentage'] = (domain_values[subcategory_columns] / domain_totals) * 100
+    fig = go.Figure(go.Scatterpolar(
+        r=topic_counts,
+        theta=topic_counts.index,
+        fill='toself'
+    ))
 
-    fig = go.Figure(data=[go.Pie(
-        labels=domain_values['Domains'],
-        values=domain_values['percentage'],
-        textinfo='label+percent',
-        insidetextorientation='radial'
-    )])
+    fig.update_layout(
+    polar=dict(
+        radialaxis=dict(
+            visible=True,
+            range=[0, max(topic_counts)],
+            tickfont=dict(size=10)  # Added equals sign here
+        )),
+    showlegend=False,
+    margin=dict(t=20, b=20, l=20, r=20),
+    height=500
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
 
-    return fig
-
-# Domain pie chart and subcategory breakdown
-st.header("Domain Pie Chart and Subcategory Breakdown")
-if party_selection == "Compare BJP and INC":
-    bjp_domain_counts = filtered_bjp_df.merge(mapping_df.rename(columns={'Domains': 'Mapping_Domains'}), left_on='Topic_Subcategories', right_on='Subcategories', how='left')
-    inc_domain_counts = filtered_inc_df.merge(mapping_df.rename(columns={'Domains': 'Mapping_Domains'}), left_on='Topic_Subcategories', right_on='Subcategories', how='left')
-    bjp_domain_counts = bjp_domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
-    inc_domain_counts = inc_domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
-
-    st.subheader("BJP")
-    bjp_pie_chart = create_pie_chart(bjp_domain_counts)
-    st.plotly_chart(bjp_pie_chart)
-
-    for domain in bjp_domain_counts['Domains'].unique():
-        st.subheader(f"{domain} Subcategory Breakdown")
-        subcategory_breakdown = bjp_domain_counts[bjp_domain_counts['Domains'] == domain][subcategory_columns]
-        st.bar_chart(subcategory_breakdown.sum().sort_values(ascending=False))
-
-    st.subheader("INC")
-    inc_pie_chart = create_pie_chart(inc_domain_counts)
-    st.plotly_chart(inc_pie_chart)
-
-    for domain in inc_domain_counts['Domains'].unique():
-        st.subheader(f"{domain} Subcategory Breakdown")
-        subcategory_breakdown = inc_domain_counts[inc_domain_counts['Domains'] == domain][subcategory_columns]
-        st.bar_chart(subcategory_breakdown.sum().sort_values(ascending=False))
-
-else:
-    domain_counts = filtered_df.merge(mapping_df.rename(columns={'Domains': 'Mapping_Domains'}), left_on='Topic_Subcategories', right_on='Subcategories', how='left')
-    domain_counts = domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
-
-    pie_chart = create_pie_chart(domain_counts)
-    st.plotly_chart(pie_chart)
-
-    for domain in domain_counts['Domains'].unique():
-        st.subheader(f"{domain} Subcategory Breakdown")
-        subcategory_breakdown = domain_counts[domain_counts['Domains'] == domain][subcategory_columns]
-        st.bar_chart(subcategory_breakdown.sum().sort_values(ascending=False))
-
-# Subcategories for selected domain
-st.header("Subcategories for Selected Domain")
-selected_domain = st.selectbox("Select Domain", mapping_df['Domains'].unique())
-if party_selection == "Compare BJP and INC":
-    bjp_subcategory_counts = filtered_bjp_df.merge(mapping_df[mapping_df['Domains'] == selected_domain], left_on='Topic_Subcategories', right_on='Subcategories', how='left')[subcategory_columns].sum().reset_index()
-    inc_subcategory_counts = filtered_inc_df.merge(mapping_df[mapping_df['Domains'] == selected_domain], left_on='Topic_Subcategories', right_on='Subcategories', how='left')[subcategory_columns].sum().reset_index()
-    st.write("BJP:")
-    st.bar_chart(bjp_subcategory_counts.set_index('Subcategories'))
-    st.write("INC:")
-    st.bar_chart(inc_subcategory_counts.set_index('Subcategories'))
-else:
-    subcategory_counts = filtered_df.merge(mapping_df[mapping_df['Domains'] == selected_domain], left_on='Topic_Subcategories', right_on='Subcategories', how='left')[subcategory_columns].sum().reset_index()
-    st.bar_chart(subcategory_counts.set_index('Subcategories'))
-
-# Line chart for selected subcategory
-st.header("Line Chart for Selected Subcategory")
-selected_subcategory = st.selectbox("Select Subcategory", mapping_df['Subcategories'].unique())
-if party_selection == "Compare BJP and INC":
-    bjp_subcategory_trend = bjp_df.groupby('Year')[selected_subcategory].sum().reset_index()
-    inc_subcategory_trend = inc_df.groupby('Year')[selected_subcategory].sum().reset_index()
-    st.line_chart(bjp_subcategory_trend.set_index('Year'), color='blue', label='BJP')
-    st.line_chart(inc_subcategory_trend.set_index('Year'), color='red', label='INC')
+    # Display the most common issues
+    st.subheader("Most Common Issues for {} from [{}] to [{}]".format(party, years[0], years[1]))
+    subcategories = [x.strip() for subcategory in df[df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
+    subcategory_counts = pd.Series(subcategories).value_counts()
+    subcategory_counts = subcategory_counts.reindex(subcategory_counts.nlargest(10).index)
+    st.bar_chart(subcategory_counts)
