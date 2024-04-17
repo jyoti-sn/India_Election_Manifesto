@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
+# Load the dataframes
 url_bjp = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_BJP.csv'
 url_inc = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_INC.csv'
 url_domain_mapping = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/India_Manifesto_Topic_Classification.csv'
@@ -20,6 +21,7 @@ subcategory_columns = ['Agriculture', 'Caste', 'Culture and Morality', 'Democrac
                  'Science and Technology', 'Terrorism', 'Underprivileged Minorities', 'Urban Development', 'Welfare State Expansion', 'Women',
                  'World Peace and Internationalism']
 
+# Sidebar filters
 # Sidebar filters
 st.sidebar.title("Filters")
 
@@ -60,59 +62,59 @@ else:
     top_subcategories = filtered_df[subcategory_columns].sum().sort_values(ascending=False)[:10]
     st.bar_chart(top_subcategories)
 
-# Function to create radar chart
-def create_radar_chart(data):
-    if not data.empty:
-        domains = data['Domains'].unique()
-        fig = go.Figure()
-        for domain in domains:
-            domain_data = data[data['Domains'] == domain][subcategory_columns].fillna(0).values.tolist()
-            if sum(domain_data) > 0:  # Add this check to skip domains with all zeros
-                fig.add_trace(go.Scatterpolar(
-                    r=domain_data,
-                    theta=subcategory_columns,
-                    fill='toself',
-                    name=domain
-                ))
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, max(data[subcategory_columns].max()) + 10]
-                )
-            ),
-            showlegend=True
-        )
-        return fig
-    else:
-        return None
 
-# Radar chart for domains
-st.header("Radar Chart for Domains")
+# Function to create pie chart
+def create_pie_chart(data):
+    domain_totals = data[subcategory_columns].sum().sum()
+    domain_values = data.groupby('Domains')[subcategory_columns].sum().sum().reset_index()
+    domain_values['percentage'] = (domain_values[subcategory_columns] / domain_totals) * 100
+
+    fig = go.Figure(data=[go.Pie(
+        labels=domain_values['Domains'],
+        values=domain_values['percentage'],
+        textinfo='label+percent',
+        insidetextorientation='radial'
+    )])
+
+    return fig
+
+# Domain pie chart and subcategory breakdown
+st.header("Domain Pie Chart and Subcategory Breakdown")
 if party_selection == "Compare BJP and INC":
     bjp_domain_counts = filtered_bjp_df.merge(mapping_df.rename(columns={'Domains': 'Mapping_Domains'}), left_on='Topic_Subcategories', right_on='Subcategories', how='left')
     inc_domain_counts = filtered_inc_df.merge(mapping_df.rename(columns={'Domains': 'Mapping_Domains'}), left_on='Topic_Subcategories', right_on='Subcategories', how='left')
     bjp_domain_counts = bjp_domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
     inc_domain_counts = inc_domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
-    
-    bjp_radar_chart = create_radar_chart(bjp_domain_counts)
-    inc_radar_chart = create_radar_chart(inc_domain_counts)
-    
-    if bjp_radar_chart is not None:
-        st.write("BJP:")
-        st.plotly_chart(bjp_radar_chart)
-    
-    if inc_radar_chart is not None:
-        st.write("INC:")
-        st.plotly_chart(inc_radar_chart)
-        
+
+    st.subheader("BJP")
+    bjp_pie_chart = create_pie_chart(bjp_domain_counts)
+    st.plotly_chart(bjp_pie_chart)
+
+    for domain in bjp_domain_counts['Domains'].unique():
+        st.subheader(f"{domain} Subcategory Breakdown")
+        subcategory_breakdown = bjp_domain_counts[bjp_domain_counts['Domains'] == domain][subcategory_columns]
+        st.bar_chart(subcategory_breakdown.sum().sort_values(ascending=False))
+
+    st.subheader("INC")
+    inc_pie_chart = create_pie_chart(inc_domain_counts)
+    st.plotly_chart(inc_pie_chart)
+
+    for domain in inc_domain_counts['Domains'].unique():
+        st.subheader(f"{domain} Subcategory Breakdown")
+        subcategory_breakdown = inc_domain_counts[inc_domain_counts['Domains'] == domain][subcategory_columns]
+        st.bar_chart(subcategory_breakdown.sum().sort_values(ascending=False))
+
 else:
     domain_counts = filtered_df.merge(mapping_df.rename(columns={'Domains': 'Mapping_Domains'}), left_on='Topic_Subcategories', right_on='Subcategories', how='left')
     domain_counts = domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
-    
-    radar_chart = create_radar_chart(domain_counts)
-    if radar_chart is not None:
-        st.plotly_chart(radar_chart)
+
+    pie_chart = create_pie_chart(domain_counts)
+    st.plotly_chart(pie_chart)
+
+    for domain in domain_counts['Domains'].unique():
+        st.subheader(f"{domain} Subcategory Breakdown")
+        subcategory_breakdown = domain_counts[domain_counts['Domains'] == domain][subcategory_columns]
+        st.bar_chart(subcategory_breakdown.sum().sort_values(ascending=False))
 
 # Subcategories for selected domain
 st.header("Subcategories for Selected Domain")
