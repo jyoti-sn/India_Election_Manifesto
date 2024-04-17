@@ -133,4 +133,4 @@ if compare_parties:
             x=1
         ),
         margin=dict(t=20, b=20, l=20, r=20),
-        height=500
+        height=500)
