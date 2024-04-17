@@ -27,7 +27,7 @@ compare_parties = st.sidebar.checkbox("Compare BJP and INC")
 
 # Define stop words and custom stop words
 stop_words = set(STOPWORDS)
-custom_stop_words = ['Bharatiya', 'Janata', 'Party']
+custom_stop_words = ['Indian', 'India']
 all_stop_words = stop_words.union(custom_stop_words)
 
 if compare_parties:
