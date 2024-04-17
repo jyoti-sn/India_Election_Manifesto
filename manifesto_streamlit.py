@@ -15,13 +15,10 @@ domain_mapping = pd.read_csv(url_domain_mapping)
 st.title("India Election Manifesto Dashboard")
 
 # Sidebar for selecting the years and compare option
-year_min = 2004
-year_max = 2024
-year_step = 5
-years = st.sidebar.slider("Select years", min_value=year_min, max_value=year_max, value=(year_min, year_max), step=year_step)
+years = st.sidebar.slider("Select years", 2004, 2024, (2004, 2024), 5)
 all_years = st.sidebar.checkbox("Show data for all years")
 if all_years:
-    years = (year_min, year_max)
+    years = (2004, 2024)
 
 compare_parties = st.sidebar.checkbox("Compare Political Parties")
 if compare_parties:
@@ -29,6 +26,9 @@ if compare_parties:
 else:
     party = st.sidebar.selectbox("Select a party", ["BJP", "INC"])
 
+# Define stop words and custom stop words
+stop_words = ['the', 'and', 'a', 'in', 'to', 'of', 'for']
+custom_stop_words = ['Bharatiya', 'Janata', 'Party']
 
 if compare_parties:
     # Display the most common domains as radar charts
@@ -105,7 +105,8 @@ if compare_parties:
     with col2:
         st.subheader("{} Most Common Issues".format(parties[1]))
         st.bar_chart(inc_subcategory_counts)
-
+else:
+    df = bjp_df if party == "BJP" else inc_df
 
     # Display the most common domains as a radar chart
     st.subheader("Most Common Domains for {} from [{}] to [{}]".format(party, years[0], years[1]))
@@ -124,7 +125,7 @@ if compare_parties:
             radialaxis=dict(
                 visible=True,
                 range=[0, max(topic_counts)],
-                tickfont=dict(size=10)
+                tickfont=dict(size 10)
             )),
         showlegend=False,
         margin=dict(t=20, b=20, l=20, r=20),
