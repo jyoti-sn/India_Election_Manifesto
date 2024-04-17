@@ -10,10 +10,21 @@ bjp_df = pd.read_csv(url_bjp)
 inc_df = pd.read_csv(url_inc)
 mapping_df = pd.read_csv(url_domain_mapping)
 
+
+# List of subcategory columns
+subcategory_columns = ['Agriculture', 'Caste', 'Culture and Morality', 'Democracy', 'Economic Planning and Goals', 'Employment',
+                 'Environment and Sustainability', 'Federalism', 'Food and Public Distribution System', 'Freedom and Human Rights',
+                 'Freemarket economy', 'Governmental and Administrative Efficiency', 'Health and Education', 'Inequality', 'Inflation',
+                 'Internal Security', 'Jammu and Kashmir', 'Judiciary', 'Labour Rights', 'Law and Order',
+                 'Leader\'s superior competence', 'National security goals', 'Nationalism and Patriotism', 'Party\'s superior competence',
+                 'Physical Infrastructure and Transportation', 'Political Corruption', 'Pro-state intervention', 'Religion', 'Rural Development',
+                 'Science and Technology', 'Terrorism', 'Underprivileged Minorities', 'Urban Development', 'Welfare State Expansion', 'Women',
+                 'World Peace and Internationalism']
+
 # Sidebar filters
 st.sidebar.title("Filters")
 
-# Sidebar for selecting the years and compare option
+# Year filter
 year_options = list(range(2004, 2025, 5))
 selected_years = st.sidebar.select_slider("Select years", options=year_options, value=(2004, 2024))
 all_years = st.sidebar.checkbox("Show data for all years")
@@ -27,16 +38,15 @@ filtered_inc_df = inc_df[inc_df['Year'].isin(range(selected_years[0], selected_y
 # Party selection
 party_selection = st.sidebar.radio("Select Party", ["Compare BJP and INC", "BJP", "INC"])
 
-
-# List of subcategory columns
-subcategory_columns = ['Agriculture', 'Caste', 'Culture and Morality', 'Democracy', 'Economic Planning and Goals', 'Employment',
-                 'Environment and Sustainability', 'Federalism', 'Food and Public Distribution System', 'Freedom and Human Rights',
-                 'Freemarket economy', 'Governmental and Administrative Efficiency', 'Health and Education', 'Inequality', 'Inflation',
-                 'Internal Security', 'Jammu and Kashmir', 'Judiciary', 'Labour Rights', 'Law and Order',
-                 'Leader\'s superior competence', 'National security goals', 'Nationalism and Patriotism', 'Party\'s superior competence',
-                 'Physical Infrastructure and Transportation', 'Political Corruption', 'Pro-state intervention', 'Religion', 'Rural Development',
-                 'Science and Technology', 'Terrorism', 'Underprivileged Minorities', 'Urban Development', 'Welfare State Expansion', 'Women',
-                 'World Peace and Internationalism']
+# Apply filters
+if party_selection == "Compare BJP and INC":
+    filtered_bjp_df = filtered_bjp_df
+    filtered_inc_df = filtered_inc_df
+else:
+    if party_selection == "BJP":
+        filtered_df = filtered_bjp_df
+    else:
+        filtered_df = filtered_inc_df
 
 # Top 10 subcategories
 st.header("Top 10 Subcategories")
@@ -51,6 +61,7 @@ else:
     top_subcategories = filtered_df[subcategory_columns].sum().sort_values(ascending=False)[:10]
     st.bar_chart(top_subcategories)
 
+# Function to create radar chart
 def create_radar_chart(data):
     domains = data['Domains'].unique()
     fig = go.Figure()
@@ -109,7 +120,4 @@ if party_selection == "Compare BJP and INC":
     bjp_subcategory_trend = bjp_df.groupby('Year')[selected_subcategory].sum().reset_index()
     inc_subcategory_trend = inc_df.groupby('Year')[selected_subcategory].sum().reset_index()
     st.line_chart(bjp_subcategory_trend.set_index('Year'), color='blue', label='BJP')
-    st.line_chart(inc_subcategory_trend.set_index('Year'), color='red', label='INC')
-else:
-    subcategory_trend = filtered_df.groupby('Year')[selected_subcategory].sum().reset_index()
-    st.line_chart(subcategory_trend.set_index('Year'))
+    st.line_chart(inc_subcategory_trend.set_index('Year'), color='red', label='INC
