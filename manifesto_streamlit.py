@@ -48,14 +48,14 @@ subcategories = ['Agriculture', 'Caste', 'Culture and Morality',
        'Health and Education', 'Inequality', 'Inflation',
        'Influnce of foreign countries', 'Internal Security',
        'Jammu and Kashmir', 'Judiciary', 'Labour Rights', 'Law and Order',
-       'Leader's superior competence', 'National security goals',
-       'Nationalism and Patriotism', 'Party's superior competence',
+       'Leader's superior competence', 'National security goals', 
+       'Nationalism and Patriotism', 'Party's superior competence', 
        'Physical Infrastructure and Transportation', 'Political Corruption',
        'Pro-state intervention', 'Religion', 'Rural Development',
        'Science and Technology', 'Terrorism', 'Underprivileged Minorities',
        'Urban Development', 'Welfare State Expansion', 'Women',
-       'World Peace and Internationalism']
-
+       'World Peace and Internationalism']  # Closing quotation added here
+       
 if compare_parties:
     # Display the most common domains as radar charts
     st.subheader("Most Common Domains for {} and {} from [{}] to [{}]".format(parties[0], parties[1], years[0], years[1]))
