@@ -10,7 +10,6 @@ bjp_df = pd.read_csv(url_bjp)
 inc_df = pd.read_csv(url_inc)
 mapping_df = pd.read_csv(url_domain_mapping)
 
-
 # List of subcategory columns
 subcategory_columns = ['Agriculture', 'Caste', 'Culture and Morality', 'Democracy', 'Economic Planning and Goals', 'Employment',
                  'Environment and Sustainability', 'Federalism', 'Food and Public Distribution System', 'Freedom and Human Rights',
