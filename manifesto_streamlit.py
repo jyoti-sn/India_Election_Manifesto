@@ -121,17 +121,17 @@ else:
     ))
 
     fig.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, max(topic_counts)],
-                tickfont=dict(size 10)
-            )),
-        showlegend=False,
-        margin=dict(t=20, b=20, l=20, r=20),
-        height=500
+    polar=dict(
+        radialaxis=dict(
+            visible=True,
+            range=[0, max(topic_counts)],
+            tickfont=dict(size=10)  # Added equals sign here
+        )),
+    showlegend=False,
+    margin=dict(t=20, b=20, l=20, r=20),
+    height=500
     )
-
+    
     st.plotly_chart(fig, use_container_width=True)
 
     # Display the most common issues
