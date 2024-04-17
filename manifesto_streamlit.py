@@ -98,10 +98,10 @@ if compare_parties:
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("{} Most Common Issues".format(parties[0]))
-        st.bar_chart(bjp_subcategory_counts)
+        st.bar_chart(bjp_subcategory_counts.rename(index=str, columns={'value': 'Count'}))  # Rename the index and column names
     with col2:
         st.subheader("{} Most Common Issues".format(parties[1]))
-        st.bar_chart(inc_subcategory_counts)
+        st.bar_chart(inc_subcategory_counts.rename(index=str, columns={'value': 'Count'}))  # Rename the index and column names
 else:
     df = bjp_df if party == "BJP" else inc_df
 
@@ -122,7 +122,7 @@ else:
         radialaxis=dict(
             visible=True,
             range=[0, max(topic_counts)],
-            tickfont=dict(size=10)  # Added equals sign here
+            tickfont=dict(size=10)
         )),
     showlegend=False,
     margin=dict(t=20, b=20, l=20, r=20),
@@ -136,4 +136,4 @@ else:
     subcategories = [x.strip() for subcategory in df[df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
     subcategory_counts = pd.Series(subcategories).value_counts()
     subcategory_counts = subcategory_counts.reindex(subcategory_counts.nlargest(10).index)
-    st.bar_chart(subcategory_counts)
+    st.bar_chart(subcategory_counts.rename(index=str, columns={'value': 'Count'}))  # Rename the index and column names
