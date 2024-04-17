@@ -2,6 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from PIL import Image
+import requests
+from io import BytesIO
+
+response_bjp = requests.get(https://en.wikipedia.org/wiki/File:Bjp.png)
+response_inc = requests.get(https://en.m.wikipedia.org/wiki/File:Indian_National_Congress_hand_logo.png)
+
 
 # Load dataframes (assuming URLs are still valid)
 url_bjp = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_BJP.csv'
@@ -11,8 +17,8 @@ bjp_df = pd.read_csv(url_bjp)
 inc_df = pd.read_csv(url_inc)
 
 # Load party logos (make sure these paths are correct)
-bjp_logo = Image.open("path/to/bjp_logo.png")  # Replace with your BJP logo path
-inc_logo = Image.open("path/to/inc_logo.png")  # Replace with your INC logo path
+bjp_logo = Image.open(BytesIO(response_bjp.content))  # Replace with your BJP logo path
+inc_logo = Image.open(BytesIO(response_inc.content))  # Replace with your INC logo path
 
 # App title and description
 st.title("Election Manifesto Dashboard")
