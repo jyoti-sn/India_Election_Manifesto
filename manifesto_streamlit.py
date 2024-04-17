@@ -53,9 +53,9 @@ def generate_radar_chart(party_name, df):
 def generate_subcategory_barchart(party_name, df):
     subcategories = [x.strip() for subcategory in df['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
     subcategory_counts = pd.Series(subcategories).value_counts()
-    color = "orange" if party_name == "BJP" else "blue"  # Set color based on party
+    color = "darkorange" if party_name == "BJP" else "royalblue"  # Use valid color names
     st.subheader(f"{party_name} Most Common Issues")
-    st.bar_chart(subcategory_counts.nlargest(10), color=color) 
+    st.bar_chart(subcategory_counts.nlargest(10), color=color)
 
 # Logic for comparing parties
 if compare_parties:
