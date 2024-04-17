@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from wordcloud import WordCloud, STOPWORDS
-import matplotlib.pyplot as plt
 
 # Load the dataframes
 url_bjp = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_BJP.csv'
@@ -14,7 +12,7 @@ bjp_df = pd.read_csv(url_bjp)
 inc_df = pd.read_csv(url_inc)
 
 # Create the Streamlit app
-st.title("India Election Manifesto Dashboard: 2004-2024")
+st.title("Election Manifesto Dashboard")
 
 # Sidebar for selecting the years and compare option
 year_min = 2004
@@ -28,15 +26,12 @@ if all_years:
 compare_parties = st.sidebar.checkbox("Compare BJP and INC")
 
 # Define stop words and custom stop words
-stop_words = set(STOPWORDS)
+stop_words = ['the', 'and', 'a', 'in', 'to', 'of', 'for']
 custom_stop_words = ['Bharatiya', 'Janata', 'Party']
-all_stop_words = stop_words.union(custom_stop_words)
 
 if compare_parties:
-    # Display the most common topics as radar charts
-    st.subheader("Most Common Topics for BJP and INC")
-    st.write("This section shows the top 10 most common topics for BJP and INC.")
-
+    # Display the most common topics as a radar chart
+    st.subheader("Most Common Topics")
     bjp_topics = [x.strip() for topic in bjp_df[bjp_df['Year'].between(years[0], years[1])]['Domains'].tolist() for x in topic.split(',')]
     bjp_topic_counts = pd.Series(bjp_topics).value_counts()
     bjp_topic_counts = bjp_topic_counts.reindex(bjp_topic_counts.nlargest(10).index)
@@ -45,23 +40,33 @@ if compare_parties:
     inc_topic_counts = pd.Series(inc_topics).value_counts()
     inc_topic_counts = inc_topic_counts.reindex(inc_topic_counts.nlargest(10).index)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-    ax1.set_title("BJP Most Common Topics")
-    ax1.set_theta_direction(-1)
-    ax1.set_theta_zero_location('N')
-    ax1.plot(bjp_topic_counts.index, bjp_topic_counts)
-    ax1.fill(bjp_topic_counts.index, bjp_topic_counts, alpha=0.2)
-    ax2.set_title("INC Most Common Topics")
-    ax2.set_theta_direction(-1)
-    ax2.set_theta_zero_location('N')
-    ax2.plot(inc_topic_counts.index, inc_topic_counts)
-    ax2.fill(inc_topic_counts.index, inc_topic_counts, alpha=0.2)
-    st.pyplot(fig)
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=bjp_topic_counts,
+        theta=bjp_topic_counts.index,
+        fill='toself',
+        name='BJP'
+    ))
+    fig.add_trace(go.Scatterpolar(
+        r=inc_topic_counts,
+        theta=inc_topic_counts.index,
+        fill='toself',
+        name='INC'
+    ))
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, max(bjp_topic_counts.max(), inc_topic_counts.max())]
+            )),
+        showlegend=True
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
     # Display the most common subcategories
-    st.subheader("Most Common Subcategories for BJP and INC")
-    st.write("This section shows the top 10 most common subcategories for BJP and INC.")
-
+    st.subheader("Most Common Subcategories")
     bjp_subcategories = [x.strip() for subcategory in bjp_df[bjp_df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
     bjp_subcategory_counts = pd.Series(bjp_subcategories).value_counts()
     bjp_subcategory_counts = bjp_subcategory_counts.reindex(bjp_subcategory_counts.nlargest(10).index)
@@ -73,15 +78,13 @@ if compare_parties:
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("BJP Most Common Subcategories")
-        st.bar(x=bjp_subcategory_counts.index, height=bjp_subcategory_counts.values)
+        st.bar_chart(bjp_subcategory_counts)
     with col2:
         st.subheader("INC Most Common Subcategories")
-        st.bar(x=inc_subcategory_counts.index, height=inc_subcategory_counts.values)
+        st.bar_chart(inc_subcategory_counts)
 
     # Display the most common summary topics
-    st.subheader("Most Common Summary Topics for BJP and INC")
-    st.write("This section shows the top 10 most common summary topics for BJP and INC.")
-
+    st.subheader("Most Common Summary Topics")
     bjp_summary_topics = [x.strip() for topic in bjp_df[bjp_df['Year'].between(years[0], years[1])]['Summary_Topics'].tolist() for x in topic.split(',')]
     bjp_summary_topic_counts = pd.Series(bjp_summary_topics).value_counts()
     bjp_summary_topic_counts = bjp_summary_topic_counts.reindex(bjp_summary_topic_counts.nlargest(10).index)
@@ -93,52 +96,28 @@ if compare_parties:
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("BJP Most Common Summary Topics")
-        st.write(", ".join(bjp_summary_topic_counts.index))
+        st.bar_chart(bjp_summary_topic_counts)
     with col2:
         st.subheader("INC Most Common Summary Topics")
-        st.write(", ".join(inc_summary_topic_counts.index))
+        st.bar_chart(inc_summary_topic_counts)
 
     # Display the most common named entities
-    st.subheader("Most Common Named Entities for BJP and INC")
-    st.write("This section shows the top 10 most common named entities for BJP and INC.")
-
-    bjp_ner_list = [ner for ner_list in bjp_df[bjp_df['Year'].between(years[0], years[1])]['NER'].tolist() for ner in eval(ner_list) if ner[0] not in all_stop_words]
+    st.subheader("Most Common Named Entities")
+    bjp_ner_list = [ner for ner_list in bjp_df[bjp_df['Year'].between(years[0], years[1])]['NER'].tolist() for ner in eval(ner_list) if ner[0] not in stop_words + custom_stop_words]
     bjp_ner_counts = pd.Series([ner[0] for ner in bjp_ner_list]).value_counts()
     bjp_ner_counts = bjp_ner_counts.reindex(bjp_ner_counts.nlargest(10).index)
 
-    inc_ner_list = [ner for ner_list in inc_df[inc_df['Year'].between(years[0], years[1])]['NER'].tolist() for ner in eval(ner_list) if ner[0] not in all_stop_words]
+    inc_ner_list = [ner for ner_list in inc_df[inc_df['Year'].between(years[0], years[1])]['NER'].tolist() for ner in eval(ner_list) if ner[0] not in stop_words + custom_stop_words]
     inc_ner_counts = pd.Series([ner[0] for ner in inc_ner_list]).value_counts()
     inc_ner_counts = inc_ner_counts.reindex(inc_ner_counts.nlargest(10).index)
 
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader(f"Most Common Named Entities for BJP in {years[0]} - {years[1]}")
+        st.subheader("BJP Most Common Named Entities")
         st.bar_chart(bjp_ner_counts)
     with col2:
-        st.subheader(f"Most Common Named Entities for INC in {years[0]} - {years[1]}")
+        st.subheader("INC Most Common Named Entities")
         st.bar_chart(inc_ner_counts)
-
-    # Display the word clouds
-    st.subheader("Word Clouds for BJP and INC")
-    st.write("This section shows the word clouds for BJP and INC based on the 'Text' column.")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader(f"BJP Word Cloud for {years[0]} - {years[1]}")
-        bjp_text = ' '.join(bjp_df[bjp_df['Year'].between(years[0], years[1])]['Text'])
-        bjp_wordcloud = WordCloud(stopwords=all_stop_words, background_color='white', width=800, height=400).generate(bjp_text)
-        plt.figure(figsize=(8, 4))
-        plt.imshow(bjp_wordcloud)
-        plt.axis("off")
-        st.pyplot(plt.gcf())
-    with col2:
-        st.subheader(f"INC Word Cloud for {years[0]} - {years[1]}")
-        inc_text = ' '.join(inc_df[inc_df['Year'].between(years[0], years[1])]['Text'])
-        inc_wordcloud = WordCloud(stopwords=all_stop_words, background_color='white', width=800, height=400).generate(inc_text)
-        plt.figure(figsize=(8, 4))
-        plt.imshow(inc_wordcloud)
-        plt.axis("off")
-        st.pyplot(plt.gcf())
 
 else:
     party = st.sidebar.selectbox("Select a party", ["BJP", "INC"])
@@ -148,9 +127,7 @@ else:
         df = inc_df
 
     # Display the most common topics as a radar chart
-    st.subheader(f"Most Common Topics for {party} in {years[0]} - {years[1]}")
-    st.write("This section shows the top 10 most common topics for the selected party and years.")
-
+    st.subheader("Most Common Topics")
     topics = [x.strip() for topic in df[df['Year'].between(years[0], years[1])]['Domains'].tolist() for x in topic.split(',')]
     topic_counts = pd.Series(topics).value_counts()
     topic_counts = topic_counts.reindex(topic_counts.nlargest(10).index)
@@ -173,39 +150,22 @@ else:
     st.plotly_chart(fig, use_container_width=True)
 
     # Display the most common subcategories
-    st.subheader(f"Most Common Subcategories for {party} in {years[0]} - {years[1]}")
-    st.write("This section shows the top 10 most common subcategories for the selected party and years.")
-
+    st.subheader("Most Common Subcategories")
     subcategories = [x.strip() for subcategory in df[df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
     subcategory_counts = pd.Series(subcategories).value_counts()
     subcategory_counts = subcategory_counts.reindex(subcategory_counts.nlargest(10).index)
-    st.bar(x=subcategory_counts.index, height=subcategory_counts.values)
+    st.bar_chart(subcategory_counts)
 
     # Display the most common summary topics
-    st.subheader(f"Most Common Summary Topics for {party} in {years[0]} - {years[1]}")
-    st.write("This section shows the top 10 most common summary topics for the selected party and years.")
-
+    st.subheader("Most Common Summary Topics")
     summary_topics = [x.strip() for topic in df[df['Year'].between(years[0], years[1])]['Summary_Topics'].tolist() for x in topic.split(',')]
     summary_topic_counts = pd.Series(summary_topics).value_counts()
     summary_topic_counts = summary_topic_counts.reindex(summary_topic_counts.nlargest(10).index)
-    st.write(", ".join(summary_topic_counts.index))
+    st.bar_chart(summary_topic_counts)
 
     # Display the most common named entities
-    st.subheader(f"Most Common Named Entities for {party} in {years[0]} - {years[1]}")
-    st.write("This section shows the top 10 most common named entities for the selected party and years.")
-
-    ner_list = [ner for ner_list in df[df['Year'].between(years[0], years[1])]['NER'].tolist() for ner in eval(ner_list) if ner[0] not in all_stop_words]
+    st.subheader("Most Common Named Entities")
+    ner_list = [ner for ner_list in df[df['Year'].between(years[0], years[1])]['NER'].tolist() for ner in eval(ner_list) if ner[0] not in stop_words + custom_stop_words]
     ner_counts = pd.Series([ner[0] for ner in ner_list]).value_counts()
     ner_counts = ner_counts.reindex(ner_counts.nlargest(10).index)
     st.bar_chart(ner_counts)
-
-    # Display the word cloud
-    st.subheader(f"Word Cloud for {party} in {years[0]} - {years[1]}")
-    st.write("This section shows the word cloud for the selected party and years based on the 'Text' column.")
-
-    text = ' '.join(df[df['Year'].between(years[0], years[1])]['Text'])
-    wordcloud = WordCloud(stopwords=all_stop_words, background_color='white', width=800, height=400).generate(text)
-    plt.figure(figsize=(8, 4))
-    plt.imshow(wordcloud)
-    plt.axis("off")
-    st.pyplot(plt.gcf())
