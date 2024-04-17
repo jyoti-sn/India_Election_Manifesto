@@ -30,7 +30,14 @@ else:
    party = st.sidebar.selectbox("Select a party", ["BJP", "INC"])
 
 # Add an option to select a subcategory
-subcategories = ['Agriculture', 'Caste', 'Culture and Morality', 'Democracy', 'Economic Planning and Goals', 'Employment', 'Environment and Sustainability', 'Federalism', 'Food and Public Distribution System', 'Freedom and Human Rights', 'Freemarket economy', 'Governmental and Administrative Efficiency', 'Health and Education', 'Inequality', 'Inflation', 'Influnce of foreign countries', 'Internal Security', 'Jammu and Kashmir', 'Judiciary', 'Labour Rights', 'Law and Order', 'Leader's superior competence', 'National security goals', 'Nationalism and Patriotism', 'Party's superior competence', 'Physical Infrastructure and Transportation', 'Political Corruption', 'Pro-state intervention', 'Religion', 'Rural Development', 'Science and Technology', 'Terrorism', 'Underprivileged Minorities', 'Urban Development', 'Welfare State Expansion', 'Women', 'World Peace and Internationalism']
+subcategories = ['Agriculture', 'Caste', 'Culture and Morality', 'Democracy', 'Economic Planning and Goals', 'Employment',
+                 'Environment and Sustainability', 'Federalism', 'Food and Public Distribution System', 'Freedom and Human Rights',
+                 'Freemarket economy', 'Governmental and Administrative Efficiency', 'Health and Education', 'Inequality', 'Inflation',
+                 'Influence of foreign countries', 'Internal Security', 'Jammu and Kashmir', 'Judiciary', 'Labour Rights', 'Law and Order',
+                 'Leader\'s superior competence', 'National security goals', 'Nationalism and Patriotism', 'Party\'s superior competence',
+                 'Physical Infrastructure and Transportation', 'Political Corruption', 'Pro-state intervention', 'Religion', 'Rural Development',
+                 'Science and Technology', 'Terrorism', 'Underprivileged Minorities', 'Urban Development', 'Welfare State Expansion', 'Women',
+                 'World Peace and Internationalism']
 selected_subcategory = st.sidebar.selectbox("Select a subcategory", subcategories)
 
 if compare_parties:
