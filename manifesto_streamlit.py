@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-from collections import Counter
+import plotly.graph_objects as go
 
 # Load the dataframes
 url_bjp = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_BJP.csv'
@@ -35,7 +34,23 @@ st.subheader("Most Common Topics")
 topics = [x.strip() for topic in df['Domains'].tolist() for x in topic.split(',')]
 topic_counts = pd.Series(topics).value_counts()
 topic_counts = topic_counts.reindex(topic_counts.nlargest(10).index)
-st.radar_chart(topic_counts)
+
+fig = go.Figure(go.Scatterpolar(
+    r=topic_counts,
+    theta=topic_counts.index,
+    fill='toself'
+))
+
+fig.update_layout(
+    polar=dict(
+        radialaxis=dict(
+            visible=True,
+            range=[0, max(topic_counts)]
+        )),
+    showlegend=False
+)
+
+st.plotly_chart(fig, use_container_width=True)
 
 # Display the most common subcategories
 st.subheader("Most Common Subcategories")
