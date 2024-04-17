@@ -5,12 +5,14 @@ import plotly.graph_objects as go
 # Load the dataframes
 url_bjp = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_BJP.csv'
 url_inc = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_INC.csv'
+url_domain_mapping = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/India_Manifesto_Topic_Classification.csv'
 
 bjp_df = pd.read_csv(url_bjp)
 inc_df = pd.read_csv(url_inc)
+domain_mapping = pd.read_csv(url_domain_mapping)
 
 # Create the Streamlit app
-st.title("Election Manifesto Dashboard")
+st.title("India Election Manifesto Dashboard")
 
 # Sidebar for selecting the years and compare option
 year_min = 2004
@@ -57,9 +59,11 @@ if compare_parties:
             polar=dict(
                 radialaxis=dict(
                     visible=True,
-                    range=[0, max(bjp_topic_counts)]
+                    range=[0, max(bjp_topic_counts)],
+                    tickfont=dict(size=10)
                 )),
-            showlegend=False
+            showlegend=True,
+            margin=dict(t=30, b=30, l=30, r=30)
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -74,9 +78,11 @@ if compare_parties:
             polar=dict(
                 radialaxis=dict(
                     visible=True,
-                    range=[0, max(inc_topic_counts)]
+                    range=[0, max(inc_topic_counts)],
+                    tickfont=dict(size=10)
                 )),
-            showlegend=False
+            showlegend=True,
+            margin=dict(t=30, b=30, l=30, r=30)
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -108,18 +114,18 @@ if compare_parties:
     if "BJP" in parties:
         bjp_domain_df = bjp_df[bjp_df['Year'].between(years[0], years[1])]
         bjp_domain_df = bjp_domain_df[bjp_domain_df['Domains'].str.contains(selected_domain)]
-        bjp_domain_subcategories = [x.strip() for subcategory in bjp_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
-        bjp_domain_subcategory_counts = pd.Series(bjp_domain_subcategories).value_counts()
+        bjp_domain_subcategories = domain_mapping[domain_mapping['Domain'] == selected_domain]['Subcategory'].tolist()
+        bjp_domain_subcategory_counts = pd.Series([x.strip() for subcategory in bjp_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in bjp_domain_subcategories]).value_counts()
         st.bar_chart(bjp_domain_subcategory_counts)
     
     if "INC" in parties:
         inc_domain_df = inc_df[inc_df['Year'].between(years[0], years[1])]
         inc_domain_df = inc_domain_df[inc_domain_df['Domains'].str.contains(selected_domain)]
-        inc_domain_subcategories = [x.strip() for subcategory in inc_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
-        inc_domain_subcategory_counts = pd.Series(inc_domain_subcategories).value_counts()
+        inc_domain_subcategories = domain_mapping[domain_mapping['Domain'] == selected_domain]['Subcategory'].tolist()
+        inc_domain_subcategory_counts = pd.Series([x.strip() for subcategory in inc_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in inc_domain_subcategories]).value_counts()
         st.bar_chart(inc_domain_subcategory_counts)
 
-if not compare_parties:
+else:
     if party == "BJP":
         df = bjp_df
     else:
@@ -141,9 +147,11 @@ if not compare_parties:
         polar=dict(
             radialaxis=dict(
                 visible=True,
-                range=[0, max(topic_counts)]
+                range=[0, max(topic_counts)],
+                tickfont=dict(size=10)
             )),
-        showlegend=False
+        showlegend=False,
+        margin=dict(t=30, b=30, l=30, r=30)
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -160,6 +168,6 @@ if not compare_parties:
     st.subheader("Breakdown of '{}' domain".format(selected_domain))
     domain_df = df[df['Year'].between(years[0], years[1])]
     domain_df = domain_df[domain_df['Domains'].str.contains(selected_domain)]
-    domain_subcategories = [x.strip() for subcategory in domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
-    domain_subcategory_counts = pd.Series(domain_subcategories).value_counts()
+    domain_subcategories = domain_mapping[domain_mapping['Domain'] == selected_domain]['Subcategory'].tolist()
+    domain_subcategory_counts = pd.Series([x.strip() for subcategory in domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in domain_subcategories]).value_counts()
     st.bar_chart(domain_subcategory_counts)
