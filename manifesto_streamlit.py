@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+import plotly.express as px
 
 # Load the dataframes
 url_bjp = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_BJP.csv'
@@ -15,164 +15,42 @@ domain_mapping = pd.read_csv(url_domain_mapping)
 st.title("India Election Manifesto Dashboard")
 
 # Sidebar for selecting the years and compare option
-year_min = 2004
-year_max = 2024
-year_step = 5
-years = st.sidebar.slider("Select years", min_value=year_min, max_value=year_max, value=(year_min, year_max), step=year_step)
-all_years = st.sidebar.checkbox("Show data for all years")
+years = st.sidebar.slider("Select years", 2004, 2024, (2004, 2024), 5)
+all_years = st.sidebar.checkbox("Show data for all years", value=True)
 if all_years:
-    years = (year_min, year_max)
+    years = (2004, 2024)
 
-compare_parties = st.sidebar.checkbox("Compare Political Parties")
+compare_parties = st.sidebar.checkbox("Compare Political Parties", True)
 if compare_parties:
     parties = st.sidebar.multiselect("Select parties to compare", ["BJP", "INC"], default=["BJP", "INC"])
 else:
     party = st.sidebar.selectbox("Select a party", ["BJP", "INC"])
 
-# Define stop words and custom stop words
-stop_words = ['the', 'and', 'a', 'in', 'to', 'of', 'for']
-custom_stop_words = ['Bharatiya', 'Janata', 'Party']
+# Filtering data
+def filter_data(df, years):
+    return df[df['Year'].between(years[0], years[1])]
 
-if compare_parties:
-    # Display the most common domains as radar charts
-    st.subheader("Most Common Domains for {} and {} from [{}] to [{}]".format(parties[0], parties[1], years[0], years[1]))
-    
-    if "BJP" in parties:
-        bjp_topics = [x.strip() for topic in bjp_df[bjp_df['Year'].between(years[0], years[1])]['Domains'].tolist() for x in topic.split(',')]
-        bjp_topic_counts = pd.Series(bjp_topics).value_counts()
-        bjp_topic_counts = bjp_topic_counts.reindex(bjp_topic_counts.nlargest(10).index)
+# Display selected domain breakdown
+selected_domain = st.selectbox("Select a domain to see the breakdown of issues", domain_mapping['Domains'].unique())
+st.subheader(f"Breakdown of '{selected_domain}' domain")
 
-    if "INC" in parties:
-        inc_topics = [x.strip() for topic in inc_df[inc_df['Year'].between(years[0], years[1])]['Domains'].tolist() for x in topic.split(',')]
-        inc_topic_counts = pd.Series(inc_topics).value_counts()
-        inc_topic_counts = inc_topic_counts.reindex(inc_topic_counts.nlargest(10).index)
+for df, label in [(bjp_df, "BJP"), (inc_df, "INC")]:
+    if compare_parties and label in parties or not compare_parties and party == label:
+        domain_data = filter_data(df, years)
+        domain_data = domain_data[domain_data['Domains'].str.contains(selected_domain)]
+        subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
+        domain_count = pd.Series([x.strip() for subcat in domain_data['Topic_Subcategories'].tolist() for x in subcat.split(',') if x.strip() in subcategories]).value_counts()
+        st.bar_chart(domain_count, use_container_width=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        fig = go.Figure(go.Scatterpolar(
-            r=bjp_topic_counts,
-            theta=bjp_topic_counts.index,
-            fill='toself',
-            name='BJP'
-        ))
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, max(bjp_topic_counts)],
-                    tickfont=dict(size=10)
-                )),
-            showlegend=True,
-            margin=dict(t=20, b=20, l=20, r=20),
-            height=500
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    with col2:
-        fig = go.Figure(go.Scatterpolar(
-            r=inc_topic_counts,
-            theta=inc_topic_counts.index,
-            fill='toself',
-            name='INC'
-        ))
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, max(inc_topic_counts)],
-                    tickfont=dict(size=10)
-                )),
-            showlegend=True,
-            margin=dict(t=20, b=20, l=20, r=20),
-            height=500
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    # Display the most common issues
-    st.subheader("Most Common Issues for {} and {} from [{}] to [{}]".format(parties[0], parties[1], years[0], years[1]))
-    
-    if "BJP" in parties:
-        bjp_subcategories = [x.strip() for subcategory in bjp_df[bjp_df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
-        bjp_subcategory_counts = pd.Series(bjp_subcategories).value_counts()
-        bjp_subcategory_counts = bjp_subcategory_counts.reindex(bjp_subcategory_counts.nlargest(10).index)
-
-    if "INC" in parties:
-        inc_subcategories = [x.strip() for subcategory in inc_df[inc_df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
-        inc_subcategory_counts = pd.Series(inc_subcategories).value_counts()
-        inc_subcategory_counts = inc_subcategory_counts.reindex(inc_subcategory_counts.nlargest(10).index)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("{} Most Common Issues".format(parties[0]))
-        st.bar_chart(bjp_subcategory_counts)
-    with col2:
-        st.subheader("{} Most Common Issues".format(parties[1]))
-        st.bar_chart(inc_subcategory_counts)
-
-    # Display the breakdown of a selected domain
-    selected_domain = st.selectbox("Select a domain to see the breakdown of issues", bjp_topic_counts.index)
-    st.subheader("Breakdown of '{}' domain".format(selected_domain))
-    
-    bjp_domain_df = bjp_df[bjp_df['Year'].between(years[0], years[1])]
-    bjp_domain_df = bjp_domain_df[bjp_domain_df['Domains'].str.contains(selected_domain)]
-    bjp_domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
-    bjp_domain_subcategory_counts = pd.Series([x.strip() for subcategory in bjp_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in bjp_domain_subcategories]).value_counts()
-
-    inc_domain_df = inc_df[inc_df['Year'].between(years[0], years[1])]
-    inc_domain_df = inc_domain_df[inc_domain_df['Domains'].str.contains(selected_domain)]
-    inc_domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
-    inc_domain_subcategory_counts = pd.Series([x.strip() for subcategory in inc_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in inc_domain_subcategories]).value_counts()
-
-    fig = go.Figure()
-    fig.add_trace(go.Bar(x=bjp_domain_subcategory_counts.index, y=bjp_domain_subcategory_counts.values, name='BJP'))
-    fig.add_trace(go.Bar(x=inc_domain_subcategory_counts.index, y=inc_domain_subcategory_counts.values, name='INC'))
-    fig.update_layout(barmode='group', xaxis_tickangle=-45)
+# Issue trend analysis
+issue_selection = st.multiselect("Select issues to track", domain_mapping['Subcategories'].unique())
+if issue_selection:
+    fig = px.line(filter_data(bjp_df if not compare_parties or party == "BJP" else inc_df, years),
+                  x='Year', y=[sub for sub in issue_selection if sub in domain_mapping['Subcategories'].unique()],
+                  title='Trend of Selected Issues Over Years')
     st.plotly_chart(fig, use_container_width=True)
-
-else:
-    if party == "BJP":
-        df = bjp_df
-    else:
-        df = inc_df
-
-    # Display the most common domains as a radar chart
-    st.subheader("Most Common Domains for {} from [{}] to [{}]".format(party, years[0], years[1]))
-    topics = [x.strip() for topic in df[df['Year'].between(years[0], years[1])]['Domains'].tolist() for x in topic.split(',')]
-    topic_counts = pd.Series(topics).value_counts()
-    topic_counts = topic_counts.reindex(topic_counts.nlargest(10).index)
-
-    fig = go.Figure(go.Scatterpolar(
-        r=topic_counts,
-        theta=topic_counts.index,
-        fill='toself'
-    ))
-
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, max(topic_counts)],
-                tickfont=dict(size=10)
-            )),
-        showlegend=False,
-        margin=dict(t=20, b=20, l=20, r=20),
-        height=500
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-    # Display the most common issues
-    st.subheader("Most Common Issues for {} from [{}] to [{}]".format(party, years[0], years[1]))
-    subcategories = [x.strip() for subcategory in df[df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
-    subcategory_counts = pd.Series(subcategories).value_counts()
-    subcategory_counts = subcategory_counts.reindex(subcategory_counts.nlargest(10).index)
-    st.bar_chart(subcategory_counts)
-
-    # Display the breakdown of a selected domain
-    selected_domain = st.selectbox("Select a domain to see the breakdown of issues", topic_counts.index)
-    st.subheader("Breakdown of '{}' domain".format(selected_domain))
-    domain_df = df[df['Year'].between(years[0], years[1])]
-    domain_df = domain_df[domain_df['Domains'].str.contains(selected_domain)]
-    domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
-    domain_subcategory_counts = pd.Series([x.strip() for subcategory in domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in domain_subcategories]).value_counts()
-    st.bar_chart(domain_subcategory_counts)
+    if compare_parties:
+        fig = px.line(filter_data(inc_df, years),
+                      x='Year', y=[sub for sub in issue_selection if sub in domain_mapping['Subcategories'].unique()],
+                      title='Trend of Selected Issues Over Years')
+        st.plotly_chart(fig, use_container_width=True)
