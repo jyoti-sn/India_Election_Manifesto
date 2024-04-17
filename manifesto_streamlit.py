@@ -119,4 +119,4 @@ if party_selection == "Compare BJP and INC":
     bjp_subcategory_trend = bjp_df.groupby('Year')[selected_subcategory].sum().reset_index()
     inc_subcategory_trend = inc_df.groupby('Year')[selected_subcategory].sum().reset_index()
     st.line_chart(bjp_subcategory_trend.set_index('Year'), color='blue', label='BJP')
-    st.line_chart(inc_subcategory_trend.set_index('Year'), color='red', label='INC
+    st.line_chart(inc_subcategory_trend.set_index('Year'), color='red', label='INC')
