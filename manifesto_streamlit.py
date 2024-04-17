@@ -114,14 +114,14 @@ if compare_parties:
     if "BJP" in parties:
         bjp_domain_df = bjp_df[bjp_df['Year'].between(years[0], years[1])]
         bjp_domain_df = bjp_domain_df[bjp_domain_df['Domains'].str.contains(selected_domain)]
-        bjp_domain_subcategories = domain_mapping[domain_mapping['Domain'] == selected_domain]['Subcategory'].tolist()
+        bjp_domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
         bjp_domain_subcategory_counts = pd.Series([x.strip() for subcategory in bjp_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in bjp_domain_subcategories]).value_counts()
         st.bar_chart(bjp_domain_subcategory_counts)
     
     if "INC" in parties:
         inc_domain_df = inc_df[inc_df['Year'].between(years[0], years[1])]
         inc_domain_df = inc_domain_df[inc_domain_df['Domains'].str.contains(selected_domain)]
-        inc_domain_subcategories = domain_mapping[domain_mapping['Domain'] == selected_domain]['Subcategory'].tolist()
+        inc_domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
         inc_domain_subcategory_counts = pd.Series([x.strip() for subcategory in inc_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in inc_domain_subcategories]).value_counts()
         st.bar_chart(inc_domain_subcategory_counts)
 
@@ -168,6 +168,6 @@ else:
     st.subheader("Breakdown of '{}' domain".format(selected_domain))
     domain_df = df[df['Year'].between(years[0], years[1])]
     domain_df = domain_df[domain_df['Domains'].str.contains(selected_domain)]
-    domain_subcategories = domain_mapping[domain_mapping['Domain'] == selected_domain]['Subcategory'].tolist()
+    domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
     domain_subcategory_counts = pd.Series([x.strip() for subcategory in domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in domain_subcategories]).value_counts()
     st.bar_chart(domain_subcategory_counts)
