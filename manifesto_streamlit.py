@@ -5,9 +5,13 @@ from PIL import Image
 import requests
 from io import BytesIO
 
-response_bjp = requests.get(https://en.wikipedia.org/wiki/File:Bjp.png)
-response_inc = requests.get(https://en.m.wikipedia.org/wiki/File:Indian_National_Congress_hand_logo.png)
-
+def get_image_from_url(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return Image.open(BytesIO(response.content))
+    else:
+        st.error(f"Error fetching image from URL: {url}")
+        return None  # Return None if there's an error
 
 # Load dataframes (assuming URLs are still valid)
 url_bjp = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/main/FinalOutput_BJP.csv'
@@ -16,13 +20,17 @@ url_inc = 'https://raw.githubusercontent.com/jyoti-sn/India_Election_Manifesto/m
 bjp_df = pd.read_csv(url_bjp)
 inc_df = pd.read_csv(url_inc)
 
-# Load party logos (make sure these paths are correct)
-bjp_logo = Image.open(BytesIO(response_bjp.content))  # Replace with your BJP logo path
-inc_logo = Image.open(BytesIO(response_inc.content))  # Replace with your INC logo path
+# Fetch party logos from Wikipedia URLs
+bjp_logo_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Bjp.png/600px-Bjp.png"  # Updated URL for BJP logo
+inc_logo_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Indian_National_Congress_hand_logo.png/600px-Indian_National_Congress_hand_logo.png"  # Updated URL for INC logo
+
+bjp_logo = get_image_from_url(bjp_logo_url)
+inc_logo = get_image_from_url(inc_logo_url)
+
 
 # App title and description
 st.title("Election Manifesto Dashboard")
-st.subheader("Exploring the Evolution of Key Issues in Indian Election Manifestos")
+st.subheader("Exploring the Evolution of Key Issues in Indian Election Manifestos: 2004-2024")
 
 # Sidebar for year and party selection
 years = st.sidebar.slider(
