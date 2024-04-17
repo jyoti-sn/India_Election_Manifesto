@@ -63,7 +63,8 @@ if compare_parties:
                     tickfont=dict(size=10)
                 )),
             showlegend=True,
-            margin=dict(t=30, b=30, l=30, r=30)
+            margin=dict(t=20, b=20, l=20, r=20),
+            height=500
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -82,7 +83,8 @@ if compare_parties:
                     tickfont=dict(size=10)
                 )),
             showlegend=True,
-            margin=dict(t=30, b=30, l=30, r=30)
+            margin=dict(t=20, b=20, l=20, r=20),
+            height=500
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -111,19 +113,21 @@ if compare_parties:
     selected_domain = st.selectbox("Select a domain to see the breakdown of issues", bjp_topic_counts.index)
     st.subheader("Breakdown of '{}' domain".format(selected_domain))
     
-    if "BJP" in parties:
-        bjp_domain_df = bjp_df[bjp_df['Year'].between(years[0], years[1])]
-        bjp_domain_df = bjp_domain_df[bjp_domain_df['Domains'].str.contains(selected_domain)]
-        bjp_domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
-        bjp_domain_subcategory_counts = pd.Series([x.strip() for subcategory in bjp_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in bjp_domain_subcategories]).value_counts()
-        st.bar_chart(bjp_domain_subcategory_counts)
-    
-    if "INC" in parties:
-        inc_domain_df = inc_df[inc_df['Year'].between(years[0], years[1])]
-        inc_domain_df = inc_domain_df[inc_domain_df['Domains'].str.contains(selected_domain)]
-        inc_domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
-        inc_domain_subcategory_counts = pd.Series([x.strip() for subcategory in inc_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in inc_domain_subcategories]).value_counts()
-        st.bar_chart(inc_domain_subcategory_counts)
+    bjp_domain_df = bjp_df[bjp_df['Year'].between(years[0], years[1])]
+    bjp_domain_df = bjp_domain_df[bjp_domain_df['Domains'].str.contains(selected_domain)]
+    bjp_domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
+    bjp_domain_subcategory_counts = pd.Series([x.strip() for subcategory in bjp_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in bjp_domain_subcategories]).value_counts()
+
+    inc_domain_df = inc_df[inc_df['Year'].between(years[0], years[1])]
+    inc_domain_df = inc_domain_df[inc_domain_df['Domains'].str.contains(selected_domain)]
+    inc_domain_subcategories = domain_mapping[domain_mapping['Domains'].str.contains(selected_domain)]['Subcategories'].tolist()[0].split(',')
+    inc_domain_subcategory_counts = pd.Series([x.strip() for subcategory in inc_domain_df['Topic_Subcategories'].tolist() for x in subcategory.split(',') if x.strip() in inc_domain_subcategories]).value_counts()
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=bjp_domain_subcategory_counts.index, y=bjp_domain_subcategory_counts.values, name='BJP'))
+    fig.add_trace(go.Bar(x=inc_domain_subcategory_counts.index, y=inc_domain_subcategory_counts.values, name='INC'))
+    fig.update_layout(barmode='group', xaxis_tickangle=-45)
+    st.plotly_chart(fig, use_container_width=True)
 
 else:
     if party == "BJP":
@@ -151,7 +155,8 @@ else:
                 tickfont=dict(size=10)
             )),
         showlegend=False,
-        margin=dict(t=30, b=30, l=30, r=30)
+        margin=dict(t=20, b=20, l=20, r=20),
+        height=500
     )
 
     st.plotly_chart(fig, use_container_width=True)
