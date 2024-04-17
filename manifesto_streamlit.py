@@ -14,27 +14,18 @@ mapping_df = pd.read_csv(url_domain_mapping)
 st.sidebar.title("Filters")
 
 # Sidebar for selecting the years and compare option
-years = st.sidebar.slider("Select years", 2004, 2024, (2004, 2024), 5)
+year_options = list(range(2004, 2025, 5))
+selected_years = st.sidebar.select_slider("Select years", options=year_options, value=(2004, 2024))
 all_years = st.sidebar.checkbox("Show data for all years")
 if all_years:
-    years = (2004, 2024)
+    selected_years = (2004, 2024)
 
 # Apply year filter
-filtered_bjp_df = bjp_df[bjp_df['Year'].isin(range(years[0], years[1] + 1))]
-filtered_inc_df = inc_df[inc_df['Year'].isin(range(years[0], years[1] + 1))]
+filtered_bjp_df = bjp_df[bjp_df['Year'].isin(range(selected_years[0], selected_years[1] + 1))]
+filtered_inc_df = inc_df[inc_df['Year'].isin(range(selected_years[0], selected_years[1] + 1))]
 
 # Party selection
 party_selection = st.sidebar.radio("Select Party", ["Compare BJP and INC", "BJP", "INC"])
-
-# Apply filters
-if party_selection == "Compare BJP and INC":
-    filtered_bjp_df = bjp_df[bjp_df['Year'].isin(selected_year)]
-    filtered_inc_df = inc_df[inc_df['Year'].isin(selected_year)]
-else:
-    if party_selection == "BJP":
-        filtered_df = bjp_df[bjp_df['Year'].isin(selected_year)]
-    else:
-        filtered_df = inc_df[inc_df['Year'].isin(selected_year)]
 
 # Top 10 subcategories
 st.header("Top 10 Subcategories")
