@@ -13,9 +13,15 @@ mapping_df = pd.read_csv(url_domain_mapping)
 # Sidebar filters
 st.sidebar.title("Filters")
 
-# Year filter
-years = bjp_df['Year'].unique()
-selected_year = st.sidebar.slider("Select Year", min(years), max(years), (min(years), max(years)), value=(min(years), max(years)))
+# Sidebar for selecting the years and compare option
+years = st.sidebar.slider("Select years", 2004, 2024, (2004, 2024), 5)
+all_years = st.sidebar.checkbox("Show data for all years")
+if all_years:
+    years = (2004, 2024)
+
+# Apply year filter
+filtered_bjp_df = bjp_df[bjp_df['Year'].isin(range(years[0], years[1] + 1))]
+filtered_inc_df = inc_df[inc_df['Year'].isin(range(years[0], years[1] + 1))]
 
 # Party selection
 party_selection = st.sidebar.radio("Select Party", ["Compare BJP and INC", "BJP", "INC"])
