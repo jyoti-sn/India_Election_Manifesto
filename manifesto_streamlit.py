@@ -16,8 +16,6 @@ inc_df = pd.read_csv(url_inc)
 # Create the Streamlit app
 st.title("India Election Manifesto Dashboard: 2004-2024")
 
-st.title("Election Manifesto Dashboard")
-
 # Sidebar for selecting the years and compare option
 year_min = 2004
 year_max = 2024
@@ -75,10 +73,10 @@ if compare_parties:
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("BJP Most Common Subcategories")
-        st.bar_chart(bjp_subcategory_counts, horizontal=True)
+        st.bar(x=bjp_subcategory_counts.index, height=bjp_subcategory_counts.values)
     with col2:
         st.subheader("INC Most Common Subcategories")
-        st.bar_chart(inc_subcategory_counts, horizontal=True)
+        st.bar(x=inc_subcategory_counts.index, height=inc_subcategory_counts.values)
 
     # Display the most common summary topics
     st.subheader("Most Common Summary Topics for BJP and INC")
@@ -181,7 +179,7 @@ else:
     subcategories = [x.strip() for subcategory in df[df['Year'].between(years[0], years[1])]['Topic_Subcategories'].tolist() for x in subcategory.split(',')]
     subcategory_counts = pd.Series(subcategories).value_counts()
     subcategory_counts = subcategory_counts.reindex(subcategory_counts.nlargest(10).index)
-    st.bar_chart(subcategory_counts, horizontal=True)
+    st.bar(x=subcategory_counts.index, height=subcategory_counts.values)
 
     # Display the most common summary topics
     st.subheader(f"Most Common Summary Topics for {party} in {years[0]} - {years[1]}")
