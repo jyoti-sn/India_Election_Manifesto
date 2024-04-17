@@ -54,17 +54,17 @@ else:
 # Radar chart for domains
 st.header("Radar Chart for Domains")
 if party_selection == "Compare BJP and INC":
-    bjp_domain_counts = filtered_bjp_df.merge(mapping_df, left_on='Topic_Subcategories', right_on='Subcategories', how='left')
-    inc_domain_counts = filtered_inc_df.merge(mapping_df, left_on='Topic_Subcategories', right_on='Subcategories', how='left')
-    bjp_domain_counts = bjp_domain_counts.groupby('Domains')[subcategory_columns].sum().reset_index()
-    inc_domain_counts = inc_domain_counts.groupby('Domains')[subcategory_columns].sum().reset_index()
+    bjp_domain_counts = filtered_bjp_df.merge(mapping_df.rename(columns={'Domains': 'Mapping_Domains'}), left_on='Topic_Subcategories', right_on='Subcategories', how='left')
+    inc_domain_counts = filtered_inc_df.merge(mapping_df.rename(columns={'Domains': 'Mapping_Domains'}), left_on='Topic_Subcategories', right_on='Subcategories', how='left')
+    bjp_domain_counts = bjp_domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
+    inc_domain_counts = inc_domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
     st.write("BJP:")
     st.plotly_chart(create_radar_chart(bjp_domain_counts))
     st.write("INC:")
     st.plotly_chart(create_radar_chart(inc_domain_counts))
 else:
-    domain_counts = filtered_df.merge(mapping_df, left_on='Topic_Subcategories', right_on='Subcategories', how='left')
-    domain_counts = domain_counts.groupby('Domains')[subcategory_columns].sum().reset_index()
+    domain_counts = filtered_df.merge(mapping_df.rename(columns={'Domains': 'Mapping_Domains'}), left_on='Topic_Subcategories', right_on='Subcategories', how='left')
+    domain_counts = domain_counts.groupby('Mapping_Domains')[subcategory_columns].sum().reset_index().rename(columns={'Mapping_Domains': 'Domains'})
     st.plotly_chart(create_radar_chart(domain_counts))
 
 # Subcategories for selected domain
